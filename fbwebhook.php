@@ -41,7 +41,7 @@ function match_keyword($id, $message){
 			$reply=get_joke();
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(whoareyou)') !== false){ //======================================================pmplbot(joke)
+	}else if (strpos($message,'pmplbot(whoareyou)') !== false){ //======================================================pmplbot(whoareyou)
 		echo '<u>Match found: ['.$id.']'.$message."</u></br>";
 		if (!already_replied($id)){
 			$reply="Administrators of the facebook group, Pacenet Meghbela Broadband (PMPL) Forum, have built me to manage the group more effectively. I am not fully prepared yet; but I will be soon. I am not affiliated with PMPL or Meghbela Broadband. https://github.com/souravndp/PMPLbot-Our-Facebook-Group-Bot";
