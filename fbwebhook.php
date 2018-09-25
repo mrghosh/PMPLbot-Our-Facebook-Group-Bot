@@ -35,10 +35,22 @@ function match_keyword($id, $message){
 			$reply="helpdesk@meghbelabroadband.com";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(') !== false){ //======================================================pmplbot( xxx )
+	}else if (strpos($message,'pmplbot(joke)') !== false){ //======================================================pmplbot(joke)
 		echo '<u>Match found: ['.$id.']'.$message."</u></br>";
 		if (!already_replied($id)){
-			$reply="unknown";
+			$reply=get_joke();
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(whoareyou)') !== false){ //======================================================pmplbot(joke)
+		echo '<u>Match found: ['.$id.']'.$message."</u></br>";
+		if (!already_replied($id)){
+			$reply="Administrators of the facebook group, Pacenet Meghbela Broadband (PMPL) Forum, have built me to manage the group more effectively. I am not fully prepared yet; but I will be soon. I am not affiliated with PMPL or Meghbela Broadband. https://github.com/souravndp/PMPLbot-Our-Facebook-Group-Bot";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot') !== false){ //======================================================pmplbot( xxx )
+		echo '<u>Match found: ['.$id.']'.$message."</u></br>";
+		if (!already_replied($id)){
+			$reply="unknown keyword";
 			post_reply($id, $reply);
 		}
 	}
@@ -55,7 +67,7 @@ function already_replied($id){
 }
 function post_reply($id, $reply){
 	global $parent_id; //inviting the global variable
-	$url='https://graph.facebook.com/v3.1/'.$id.'/comments?message='.$reply.'&access_token='.getenv("FB_PAGE_TOKEN");
+	$url='https://graph.facebook.com/v3.1/'.$id.'/comments?message='.urlencode($reply).'&access_token='.getenv("FB_PAGE_TOKEN");
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -70,6 +82,16 @@ function post_reply($id, $reply){
 		file_put_contents('parent_id.txt', $id.PHP_EOL, FILE_APPEND);
 	}
 	curl_close ($ch);
+}
+function get_joke(){
+	$opts = [
+		"http" => [
+			"method" => "GET",
+			"header" => "Accept: text/plain"
+		]
+	];
+	$context = stream_context_create($opts);
+	return file_get_contents('https://icanhazdadjoke.com/', false, $context);
 }
 
 
