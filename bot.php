@@ -9,8 +9,10 @@ pcntl_signal(SIGINT,  "sig_handler");
 pcntl_signal(SIGTERM, "sig_handler");
 pcntl_signal(SIGHUP,  "sig_handler");
 $hLock=fopen(__FILE__.".lock", "w+");
-if(!flock($hLock, LOCK_EX | LOCK_NB))
-	die("Already running. Exiting...");
+if(!flock($hLock, LOCK_EX | LOCK_NB)){
+	logger("========================================Already running. Exiting========================================");
+	die();
+}
 logger("========================================STARTING SCRIPT========================================");
 $time_start = microtime(true);
 $redflag=false;
