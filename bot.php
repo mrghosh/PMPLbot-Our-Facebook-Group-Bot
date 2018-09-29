@@ -1,13 +1,12 @@
 <?php
-//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulations, portforward, liveip, speedtest, suggest/bug, lco
-
 ignore_user_abort(true);
 set_time_limit(0);
 ob_implicit_flush(true); //flush()
 ob_end_clean(); //ob_flush()
-pcntl_signal(SIGINT,  "sig_handler");
-pcntl_signal(SIGTERM, "sig_handler");
-pcntl_signal(SIGHUP,  "sig_handler");
+//pcntl is not supported on Windows
+//pcntl_signal(SIGINT,  "sig_handler");
+//pcntl_signal(SIGTERM, "sig_handler");
+//pcntl_signal(SIGHUP,  "sig_handler");
 $hLock=fopen(__FILE__.".lock", "w+");
 if(!flock($hLock, LOCK_EX | LOCK_NB)){
 	logger("========================================Already running. Exiting========================================");
@@ -21,7 +20,7 @@ $version='0.0.1';
 if(is_file('parent_id.txt'))
 	$parent_id=file('parent_id.txt', FILE_IGNORE_NEW_LINES); //read parent ids of previous posts from file
 while (!file_exists('stop.txt')) {
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
+	//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	logger("--------------------starting loop(".$loopcount.")--------------------");
 	$ch = curl_init();
 	$url='https://graph.facebook.com/v3.1/456642647737894/feed/?fields=message,created_time,comments.order(reverse_chronological).summary(1)&limit=5&since=-120%20seconds&access_token='.getenv("FB_PAGE_TOKEN");
@@ -36,13 +35,13 @@ while (!file_exists('stop.txt')) {
 		case 200:
 			logger('Successfylly fetched feeds');
 			$obj_feeds = json_decode($feeds, true);
-			pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
+			//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 			foreach($obj_feeds['data'] as $post){
-				pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
+				//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 				//echo '<u><b>['.$post['id'].']['.$post['created_time'].']'.$post['message'].'</b></u><br>';
 				match_keyword($post['message'],$post['id']);
 				foreach($post['comments']['data'] as $comment){
-					pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
+					//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 					//echo '['.$comment['id'].']['.$comment['created_time'].']'.$comment['message'].'<br>';
 					match_keyword($comment['id'],$comment['message']);
 				}
@@ -55,7 +54,7 @@ while (!file_exists('stop.txt')) {
 	curl_close ($ch);
 	$loopcount++;
 	logger("sleeping");
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
+	//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	sleep(30);
 }
 flock($hLock, LOCK_UN);
@@ -97,8 +96,7 @@ function match_keyword($id, $message){
 	}else if (strpos($message,'pmplbot(status)') !== false){ //--------------------pmplbot(status)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Running for: " . (microtime(true) - $GLOBALS['time_start'])." seconds and loopcount:".$GLOBALS['loopcount']."
-			Beta version".$GLOBALS['version'].".
-			==CAUTION==If I misbehave, please use the keyword pmplbot(redflag). It will stop me from posting any comment for the current cycle until restarted. This flag is only for serious incidents (eg: I am posting random comments very frequently etc.). If you use it without proper reason, my human friends will permanently ban/block you from the group.";
+			Beta version".$GLOBALS['version'];
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(plans)') !== false){ //--------------------pmplbot(plans)--------------------
@@ -171,7 +169,7 @@ function match_keyword($id, $message){
 	}else if (strpos($message,'pmplbot(grievance)') !== false){ //--------------------pmplbot(grievance)--------------------
 		if (!already_replied($id,$message)){
 			$reply="This are some emails of Meghbela Broadbsn managenment or the advisory group. nodal@meghbelabroadband.com (nodal officer), deepalaya_wb_ngo@yahoo.co.in (NGO, advisory group), subhankar.dutta@meghbelabroadband.com (services-head), rehan@meghbelabroadband.com (Senior Manager - Regulatory). Read more at: https://www.facebook.com/groups/pmplusers/learning_content/?filter=1667488453378902
-			Please use the above emails only if your grievance is not resolved within the QoS time limit by sending an email to the helpdesk. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. If you still have some more time to fight for your consumer rights, my human friends have some emails of TRAI/Detarptment of Telecommunications. Please contact the admins";
+			Please use the above emails only if your grievance is not resolved within the QoS time limit by sending an email to the helpdesk. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. If you still have some more time to fight for your consumer rights, my human friends have some emails of TRAI/Detarptment of Telecommunications. Please contact the admins. more: pmplbot(lco), pmplbot(regulations)";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(connection') !== false){ //--------------------pmplbot(sconnectionproblem)--------------------
@@ -180,7 +178,7 @@ function match_keyword($id, $message){
 			For troubleshooting, check ping at your local gateway, 172.17.8.1 and 8.8.8.8(eg: open cmd and run: ping 172.17.8.1 -t) to see if any RTO(request timed out) is occuring.
 			Try connecting the cable directly to your computer, rather than connecting through a personal router (this step is required to eleminate any probelm arising from your router). more: pmplbot(wifiproblem)
 			If you have already notified the ISP but you are still facing the same problem continuously after 3-4 days, you may need to escalate the grievance to the higer level. more: pmplbot(grievance)
-			If your line is not restored within 3 days, then the ISP need to refund 7 days charge or extend validity for 7 days. Similarly 15 days if the connection if the restoration takes more 7 days and 30 dyas in case the issue remanins unresolved for more than 15 days. This is your consumer right but remember to take sufficient proof, so that you can prove this later, in case the ISP denies to refund/extend and you need to approach pgportal/consumer affairs. more: pmplbot(grievance), pmplbot(regulations)";
+			If your line is not restored within 3 days, then the ISP need to refund 7 days charge or extend validity for 7 days. Similarly 15 days if the connection if the restoration takes more 7 days and 30 dyas in case the issue remanins unresolved for more than 15 days. This is your consumer right but remember to take sufficient proof, so that you can prove this later, in case the ISP denies to refund/extend and you need to approach pgportal/consumer affairs. more: pmplbot(grievance), pmplbot(regulations), pmplbot(lco)";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(speed') !== false){ //--------------------pmplbot(speedproblem)--------------------
@@ -222,7 +220,7 @@ function match_keyword($id, $message){
 		}
 	}else if (strpos($message,'pmplbot(liveip)') !== false){ //--------------------pmplbot(liveip)--------------------
 		if (!already_replied($id,$message)){
-			$reply="You need to purchage internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. more: pmplbot(contact)";
+			$reply="You need to purchage internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. Price 2500+GST per annum. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. more: pmplbot(contact)";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(movierequest)') !== false){ //--------------------pmplbot(movierequest)--------------------
@@ -237,39 +235,109 @@ function match_keyword($id, $message){
 		}
 	}else if (strpos($message,'pmplbot(regulation') !== false){ //--------------------pmplbot(regulation)--------------------
 		if (!already_replied($id,$message)){
-			$reply="";
+			$reply="https://www.facebook.com/groups/pmplusers/learning_content/?filter=1272969312845177&post=1932195363515941
+			Broadband Policy, 2004: http://www.dot.gov.in/broadband-policy-2004
+			Quality of Service of Broadband Service Regulations 2006: https://trai.gov.in/sites/default/files/201211090321243727349Regulation6oct06.pdf
+			Telecom Consumers Complaint Redressal Regulations, 2012:https://trai.gov.in/sites/default/files/TCCRR0012012.pdf
+			TRAI Recommendation on Net Neutrality, 2017: https://www.trai.gov.in/sites/default/files/Recommendations_NN_2017_11_28.pdf
+			THE PERSONAL DATA PROTECTION DRAFT BILL, 2018: http://meity.gov.in/writereaddata/files/Personal_Data_Protection_Bill%2C2018_0.pdf";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(wifiproblem)') !== false){ //--------------------pmplbot(wifiproblem)--------------------
 		if (!already_replied($id,$message)){
-			$reply="";
+			$reply="Please mention the follwing details; so that, the users will be able to help you quickly.
+			1. Mention your router model
+			2.a)[IMPORTANT] Can you browse internet on your computer using mobile hotspot?
+			2.b)[IMPORTANT] Are you able to access internet from your mobile while connected to this wifi?
+			3. Is there a yellow exclamation mark on the Wifi-Icon in the taskbar?
+			4.[IMPORTANT] What is the error message being displayed when you are trying to open a webpage in the browser?
+			5.[IMPORTANT] open the administrator command prompt (search cmd, right click on the program and select 'run as administrator') and enter the following commands. provide the output screenshots
+			5.a) ipconfig /all
+			5.b) Netsh WLAN show interfaces
+			6. Ping response to your router IP
+			7.[OPTIONAL] Try disabling antivirus and Firewall.
+			8.[OPTIONAL] Try setting IP and DNS manually on your computer.
+			9.[OPTIONAL] Try resetting the router to factory settings.";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(speedtest)') !== false){ //--------------------pmplbot(speedtest)--------------------
 		if (!already_replied($id,$message)){
-			$reply="";
+			$reply="The above commenter thinks that your speedtest results are incorrect or misleading. Performing speedtest using ISP servers/CDN/peered websites won't show your actual internet experience because your ISP may not have sufficient upstream international bandwidth or they may have routing problems or they may discriminate traffic based on protocol. more: pmplbot(https)
+			Thus, you need to provide the follwing screenshots to indicate your actual internet experience
+			1.[IMPORTANT] Speedtest on ookla (http://speedtest.net) using 4-5 servers which are situated outside of India (eg: tele2, at&t, bell canada, telenor, comcast, sprint, Time Warner Cable, China Telecom etc.)
+			2. Speedtest on https://speed.measurementlab.net
+			3. Speedtest on http://openload.co/speedtest
+			4. Speedtest on fast.com
+			5. Speedtest while downloading via ftp protocol";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(lco)') !== false){ //--------------------pmplbot(lco)--------------------
 		if (!already_replied($id,$message)){
-			$reply="";
+			$reply="Some users reported that their LCO charges more than MRP to recharge packages. These dishonest LCOs threaten users to disconnect lines and violate consumer rights in different ways. The ISP also don't want to take responsibilty and they don't want to take complaint against LCOs. Users should always do their best to stop these illegal and unethical activities. Meghbela is responsible for the activity of their partners. Thus, First send email to thier higher authorities and if they deny responsibility, go to pgportal or consumer affairs department. pgportal is quite helpful in thsese cases but you should always keep proofs (eg: LCO bill). If LCO denies to give a bill, report this too becauase this is illegal. My human friends can always help you to resolve these issues but you have to dedicate some of your time to lodge grievances at proper places.
+			Some successful pgportal cases:
+			1. (DOTEL/E/2017/42128) Alliance had to return reactivation charge (Rs 400) which was collected by the LCO for not recharging 3 consecutive months.
+			2. (DOTEL/E/2018/16508) Meghbela had to extend user's package validity for 30 days when the Meghbela/LCO disconnected the connection without any valid reason. 
+			more: pmplbot(grievances)";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(security)') !== false){ //--------------------pmplbot(security)--------------------
+		if (!already_replied($id,$message)){
+			$reply="Avoid posting any personally identifiable informations like IP, MAC, username tec. in this group.
+			Always change your default login password(12345)[Login into myaccount portal->click 'chnage modem password'].
+			Change your myaccount portal password(12345) as soon as possible.[Login into myaccount portal->click your name in the top-right corner->click 'edit password']
+			Myaccount Portal(http://mypage.meghbelabroadband.in)";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(redflag)') !== false){ //--------------------pmplbot(redflag)--------------------
 		if (!already_replied($id,$message)){
-			$reply="";
-			post_reply($id, $reply);
+			$GLOBALS['redflag']=true;
 		}
-	}else if (strpos($message,'pmplbot(suggest)') !== false || strpos($message,'pmplbot(bug)') !== false){
-	                                                        //--------------------pmplbot(suggest or bug)--------------------
+	}else if (strpos($message,'pmplbot(suggest') !== false || strpos($message,'pmplbot(bug)') !== false){
+	                                                        //--------------------pmplbot(suggestion or bug)--------------------
 		if (!already_replied($id,$message)){
-			$reply="";
+			$reply="Thank you for your suggestion/bug report. I have recorded the suggestion/bug for my developers";
+			file_put_contents('suggestions_bug.txt', '['.$id.'] '.$message.PHP_EOL , FILE_APPEND);
+			logger('SUGGESTION/BUG RECEIVED: ['.$id.'] '.$message);
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(help)') !== false){ //--------------------pmplbot(help)--------------------
 		if (!already_replied($id,$message)){
-			$reply="The following keywords are available
-			(under construction)";
+			$reply="I search for pre-defined keywords (every 60 seconds) in the main post and in the first level comments of that post. So, if you write a 2nd level comment (comment to another comment), I won't be able to reply. Moroever, if you use 2 keywords in a single post/comment, I will reply only to the first keyword. Editing/Updating the post/keywork may not work, try adding a new comment.
+			I am in beta version. So, mistakes are expected. I am not affiliated with PMPL or Meghbela Broadband. Please send your suggestions or report bug directly using the keywords pmplbot(suggest) or pmplbot(bug). If you need to know more, please use pmplbot(whoareyou), pmplbot(status). The following keywords are available: [==usage pmplbot(keyword) eg: pmplbot(help), pmplbot(contact)]
+			-help (displayes this current comment)
+			-contact (Meghbela broadband contact)
+			-plans
+			-alpha2
+			-onlinerecharge
+			-grievance (how to escalate grievances)
+			-autologin
+			-check:url (checks connectivity to the given url)[Replace the URL. eg: pmplbot(check:google.com)]
+			-joke (posts a random joke)
+			-localpeers
+			-livetv
+			-movierequest
+			-speedproblem
+			-connectionproblem
+			-wifiproblem
+			-https
+			-dns
+			-torrent (torrent faq)
+			-portforward
+			-security (how to securely manage your Meghbela Broadband internet account)
+			-regulations (Collection of relevant regulation links by TRAI or depatment of telecommunications)
+			-howinternetworks (Basic knowledge about the internet-video link)
+			-router (Router buying guide/suggestion)
+			-lco (LCO misconduct/grievances against LCO)
+			-offtopic
+			-repost (Already discussed topics. inform OP to search old posts)
+			-conduct (Code of conduct)
+			-speedtest (incorrect or misleadings speedtests. Proper way to display your speedtest screenshots)
+			-suggestion (suggest features to the developers, write the suggestion in the same comment with this keyword)
+			-bug (report bugs to the developers, write the bug in the same comment with this keyword)
+			-redflag (==CAUTION==If I misbehave, please use the keyword pmplbot(redflag). It will stop me from posting any comment for the current cycle until restarted. This flag is only for serious incidents (eg: I am posting random comments very frequently etc.). If you use it without proper reason, my human friends will permanently ban/block you from the group.)
+			-whoareyou (More details about me. My code is opensource)
+			-status (Display current status)
+			";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot') !== false){ //--------------------pmplbot( xxx )--------------------
@@ -397,7 +465,7 @@ function sig_handler($sig) {
 	exit();
 }
 //=============================================================================
-
+//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulations, portforward, liveip, speedtest, suggest/bug, lco
 
 
 
@@ -435,19 +503,6 @@ if(!curl_errno($ch))
  $info = curl_getinfo($ch);
 
  echo 'Took ' . $info['total_time'] . ' seconds to send a request to ' . $info['url'];
-}
-
-===============================================================
-
-$data = file_get_contents('filename.txt');
-while (!file_exists('stop.txt')) {
-    // Add 1 to $data
-    $data = $data+1;
-    // Update file
-    file_put_contents('filename.txt', $data);
-
-    // Wait 4 seconds
-    sleep(4);
 }
 
 ===============================================================
