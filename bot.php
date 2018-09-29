@@ -1,5 +1,5 @@
 <?php
-//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulations, portforward, liveip, showoff, suggest/bug, lco
+//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulations, portforward, liveip, speedtest, suggest/bug, lco
 
 ignore_user_abort(true);
 set_time_limit(0);
@@ -21,8 +21,8 @@ $version='0.0.1';
 if(is_file('parent_id.txt'))
 	$parent_id=file('parent_id.txt', FILE_IGNORE_NEW_LINES); //read parent ids of previous posts from file
 while (!file_exists('stop.txt')) {
-	logger("--------------------starting loop(".$loopcount.")--------------------");
 	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
+	logger("--------------------starting loop(".$loopcount.")--------------------");
 	$ch = curl_init();
 	$url='https://graph.facebook.com/v3.1/456642647737894/feed/?fields=message,created_time,comments.order(reverse_chronological).summary(1)&limit=5&since=-120%20seconds&access_token='.getenv("FB_PAGE_TOKEN");
 	curl_setopt($ch, CURLOPT_URL, $url);
@@ -38,9 +38,11 @@ while (!file_exists('stop.txt')) {
 			$obj_feeds = json_decode($feeds, true);
 			pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 			foreach($obj_feeds['data'] as $post){
+				pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 				//echo '<u><b>['.$post['id'].']['.$post['created_time'].']'.$post['message'].'</b></u><br>';
 				match_keyword($post['message'],$post['id']);
 				foreach($post['comments']['data'] as $comment){
+					pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 					//echo '['.$comment['id'].']['.$comment['created_time'].']'.$comment['message'].'<br>';
 					match_keyword($comment['id'],$comment['message']);
 				}
@@ -56,6 +58,10 @@ while (!file_exists('stop.txt')) {
 	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	sleep(30);
 }
+flock($hLock, LOCK_UN);
+fclose($hLock);
+unlink(__FILE__.".lock");
+logger("========================================stop.txt file is present. STOPPING SCRIPT========================================");
 //=============================================================================
 function match_keyword($id, $message){
 	global $parent_id; //inviting the global variable
@@ -147,7 +153,7 @@ function match_keyword($id, $message){
 		}
 	}else if (strpos($message,'pmplbot(offtopic)') !== false){ //--------------------pmplbot(offtopic)--------------------
 		if (!already_replied($id,$message)){
-			$reply="According to the above commenter, this post does not fit within the allowed topic list for this group. offtopic posts should have #OT or #offtopic hashtag at the beginning. We have a very broad definition of items which are considered ontopic. We generally allow moderate offtopic posts but if the topic is blantly offtopic then we will delete it. Please note that self promotion and spam is strictly prohibited. Repeated violatations will result in removal of the OP form this group. I have notified the human moderators. Their decision will be considered final.";
+			$reply="According to the above commenter, this post does not fit within the allowed topic list for this group. offtopic posts should have #OT or #offtopic hashtag at the beginning. We have a very broad definition of items which are considered ontopic. We generally allow moderate offtopic posts but if the topic is blantly offtopic then we will delete it. Please note that self promotion and spam is strictly prohibited. Repeated violatations will result in removal of the OP form this group. All actions will be taken on a case-by-case basis at the discretion of our moderators. I have notified the human moderators. Their decision will be considered final.";
 			post_reply($id, $reply);
 		}
 	}else if (strpos($message,'pmplbot(repost)') !== false){ //--------------------pmplbot(repost)--------------------
@@ -201,6 +207,65 @@ function match_keyword($id, $message){
 			$reply="Understanding the basics of the internet will help us to use this marvelous technology more efficiently and will also make us more confident. Learn more through interesting videos here: https://www.facebook.com/groups/pmplusers/learning_content/?filter=1067618223407494";
 			post_reply($id, $reply);
 		}
+	}else if (strpos($message,'pmplbot(onlinerecharge)') !== false){ //--------------------pmplbot(onlinerecharge)--------------------
+		if (!already_replied($id,$message)){
+			$reply="Online recharge is not available for all users/zones. If your zone has online recharge facility, then you should be able to recharge from your myaccount(http://mypage.meghbelabroadband.in) portal. In some cases, even if online recharge facility is blocked on myaccount portal, you can visit paytm (web or app) and recharge plans from there. Goto broadband->Select Meghbela from the provider list->Enter your username(the one you use to login).";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(conduct)') !== false){ //--------------------pmplbot(conduct)--------------------
+		if (!already_replied($id,$message)){
+			$reply="The above commenter belives that this thread is not abiding by our code of conduct. Please build a community that is rooted in kindness, collaboration, and mutual respect. No unfriendly language. No personal attacks. No bigotry. No harassment.
+			Every person contributes to building a kind, respectful community. If you find unacceptable behavior directed at yourself or others, you can report it to admins.
+			For most first-time misconduct, moderators will remove offending content and send a warning. For very rare cases, moderators will expel people who display a pattern of harmful destructive behavior toward our community.
+			This comment incorporates ideas and language from the StackOverflow codes of conduct.";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(liveip)') !== false){ //--------------------pmplbot(liveip)--------------------
+		if (!already_replied($id,$message)){
+			$reply="You need to purchage internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. more: pmplbot(contact)";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(movierequest)') !== false){ //--------------------pmplbot(movierequest)--------------------
+		if (!already_replied($id,$message)){
+			$reply="The above commenter thinks that this post is a query regarding how to download some specific content from the internet. Please be advised that we don't support any kind of piracy in this group. However localpeers VIP member can request for specific contents in the relevant section on the website. We don't delete such posts because some users can actually help the OP but everybody is sole responsible for their comments/actions. more: pmplbot(torrent), pmplbot(localpeers)";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(portforward)') !== false){ //--------------------pmplbot(portforward)--------------------
+		if (!already_replied($id,$message)){
+			$reply="You can use the port forward feature on yout router, but that won't do anyting untill you have enabled the dynamic IP pool feature or purchased live IP from the ISP. Dynamic IP pool or DNAT feature is enabled on the discretion of the ISP for rare cases. more: pmplbot(liveip)";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(regulation') !== false){ //--------------------pmplbot(regulation)--------------------
+		if (!already_replied($id,$message)){
+			$reply="";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(wifiproblem)') !== false){ //--------------------pmplbot(wifiproblem)--------------------
+		if (!already_replied($id,$message)){
+			$reply="";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(speedtest)') !== false){ //--------------------pmplbot(speedtest)--------------------
+		if (!already_replied($id,$message)){
+			$reply="";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(lco)') !== false){ //--------------------pmplbot(lco)--------------------
+		if (!already_replied($id,$message)){
+			$reply="";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(redflag)') !== false){ //--------------------pmplbot(redflag)--------------------
+		if (!already_replied($id,$message)){
+			$reply="";
+			post_reply($id, $reply);
+		}
+	}else if (strpos($message,'pmplbot(suggest)') !== false || strpos($message,'pmplbot(bug)') !== false){
+	                                                        //--------------------pmplbot(suggest or bug)--------------------
+		if (!already_replied($id,$message)){
+			$reply="";
+			post_reply($id, $reply);
+		}
 	}else if (strpos($message,'pmplbot(help)') !== false){ //--------------------pmplbot(help)--------------------
 		if (!already_replied($id,$message)){
 			$reply="The following keywords are available
@@ -227,7 +292,6 @@ function already_replied($id,$message){
 }
 //=============================================================================
 function post_reply($id, $reply){
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	global $parent_id; //inviting the global variable
 	if($GLOBALS['redflag']){
 		logger("Found redflag true. returning without posting comment");
@@ -259,11 +323,9 @@ function post_reply($id, $reply){
 		}
 	}
 	curl_close ($ch);
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 }
 //=============================================================================
 function get_joke(){
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, "https://icanhazdadjoke.com/");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -288,13 +350,11 @@ function get_joke(){
 		}
 	}
 	curl_close ($ch);
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	logger($result);
 	return $result;
 }
 //=============================================================================
 function check_url($url){
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	if ( $parts = parse_url($url) ) {
 		if ( !isset($parts["scheme"]) ){
 		   $url = "http://$url";
@@ -315,7 +375,6 @@ function check_url($url){
 			logger($reply."HTTP CODE: ".$http_code);
 		}
 	}
-	pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	return $reply;
 }
 //=============================================================================
@@ -338,10 +397,7 @@ function sig_handler($sig) {
 	exit();
 }
 //=============================================================================
-flock($hLock, LOCK_UN);
-fclose($hLock);
-unlink(__FILE__.".lock");
-logger("========================================STOPPING SCRIPT========================================");
+
 
 
 
