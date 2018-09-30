@@ -16,14 +16,14 @@ logger("========================================STARTING SCRIPT=================
 $time_start = microtime(true);
 $redflag=false;
 $loopcount=1;
-$version='0.0.1';
+$version='0.0.2';
 if(is_file('parent_id.txt'))
 	$parent_id=file('parent_id.txt', FILE_IGNORE_NEW_LINES); //read parent ids of previous posts from file
 while (!file_exists('stop.txt')) {
 	//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	logger("--------------------starting loop(".$loopcount.")--------------------");
 	$ch = curl_init();
-	$url='https://graph.facebook.com/v3.1/456642647737894/feed/?fields=message,created_time,comments.order(reverse_chronological).summary(1)&limit=5&since=-120%20seconds&access_token='.getenv("FB_PAGE_TOKEN");
+	$url='https://graph.facebook.com/v3.1/456642647737894/feed/?fields=message,created_time,comments.order(reverse_chronological).summary(1)&limit=5&since=-180%20seconds&access_token='.getenv("FB_PAGE_TOKEN");
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_TIMEOUT,10);
@@ -39,11 +39,11 @@ while (!file_exists('stop.txt')) {
 			foreach($obj_feeds['data'] as $post){
 				//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 				//echo '<u><b>['.$post['id'].']['.$post['created_time'].']'.$post['message'].'</b></u><br>';
-				match_keyword($post['message'],$post['id']);
+				match_keyword($post['id'],$post['message']);
 				foreach($post['comments']['data'] as $comment){
 					//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
-					//echo '['.$comment['id'].']['.$comment['created_time'].']'.$comment['message'].'<br>';
-					match_keyword($comment['id'],$comment['message']);
+					//echo '['.$comment['id'].']['.$comment['created _time'].']'.$comment['message'].'<br>';
+					match_keyword($post['id'].'_'.$comment['id'],$comment['message']);
 				}
 			}
 			break;
@@ -64,23 +64,23 @@ logger("========================================stop.txt file is present. STOPPI
 //=============================================================================
 function match_keyword($id, $message){
 	global $parent_id; //inviting the global variable
-	if (strpos($message,'pmplbot(ping)') !== false) { //--------------------pmplbot(ping)--------------------
+	if (stripos($message,'pmplbot(ping)') !== false) { //--------------------pmplbot(ping)--------------------
 		if (!already_replied($id,$message)){
 			$reply="pong";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(contact)') !== false) { //--------------------pmplbot(contact)--------------------
+	}else if (stripos($message,'pmplbot(contact)') !== false) { //--------------------pmplbot(contact)--------------------
 		if (!already_replied($id,$message)){
 			$reply="helpdesk@meghbelabroadband.com, 1800-102-5111 (tollfree), 033-4029-1100
 			More: pmplbot(grievance)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(joke)') !== false){ //--------------------pmplbot(joke)--------------------
+	}else if (stripos($message,'pmplbot(joke)') !== false){ //--------------------pmplbot(joke)--------------------
 		if (!already_replied($id,$message)){
 			$reply=get_joke();
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(whoareyou)') !== false){ //--------------------pmplbot(whoareyou)--------------------
+	}else if (stripos($message,'pmplbot(whoareyou)') !== false){ //--------------------pmplbot(whoareyou)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Administrators of the facebook group, Pacenet Meghbela Broadband (PMPL) Forum, have built me to manage the group more effectively. I am not fully prepared yet; but I will be soon. I am not affiliated with PMPL or Meghbela Broadband.
 			I am written in PHP and I periodically check for keyword every 60 seconds. I use Facebook graph API to interact with Facebook platform.
@@ -93,13 +93,13 @@ function match_keyword($id, $message){
 			$reply=check_url(filter_var($match[0], FILTER_SANITIZE_URL));
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(status)') !== false){ //--------------------pmplbot(status)--------------------
+	}else if (stripos($message,'pmplbot(status)') !== false){ //--------------------pmplbot(status)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Running for: " . (microtime(true) - $GLOBALS['time_start'])." seconds and loopcount:".$GLOBALS['loopcount']."
 			Beta version".$GLOBALS['version'];
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(plans)') !== false){ //--------------------pmplbot(plans)--------------------
+	}else if (stripos($message,'pmplbot(plans)') !== false){ //--------------------pmplbot(plans)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Meghbela Broadband has different plans depending on the location. It is not possible to make a full list of all available plans but the following plans are available at most locations. (+18% tax is applicable)
 			Alpha (30 Mbps, 31 Days, Rs 500)
@@ -110,29 +110,29 @@ function match_keyword($id, $message){
 			Visit meghbelabroadband.com for full plan lists. If your lcoal plan is not available on the website, please contact the ISP for explanation. Verify plan list from the ISP before recharging. The above information is provided as is and I have no responsibiliy for the accuracy.";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(alpha2)') !== false){ //--------------------pmplbot(alpha2)--------------------
+	}else if (stripos($message,'pmplbot(alpha2)') !== false){ //--------------------pmplbot(alpha2)--------------------
 		if (!already_replied($id,$message)){
 			$reply="alpha2 is a plan which offers 60 Mbps bandwidth and it costs Rs 500 + 18% GST. alpha2 is not yet officially launched. Please ask your LCO for more details. If your LCO denies the existence of such plan, please see these old group posts.
 			https://www.facebook.com/groups/pmplusers/permalink/1931689790233165/
 			https://www.facebook.com/groups/pmplusers/permalink/1971467219588755/";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(localpeers)') !== false){ //--------------------pmplbot(localpeers)--------------------
+	}else if (stripos($message,'pmplbot(localpeers)') !== false){ //--------------------pmplbot(localpeers)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Thank you for your interest in localpeers. the website URL is https://localpeers.com You need to register first using social login. localpeers also has an android app (https://localpeers.com/localpeers-android-app/). Localpeers works on any ISP network. Know more: https://www.facebook.com/groups/pmplusers/permalink/1558006504268164/";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(livetv)') !== false){ //--------------------pmplbot(livetv)--------------------
+	}else if (stripos($message,'pmplbot(livetv)') !== false){ //--------------------pmplbot(livetv)--------------------
 		if (!already_replied($id,$message)){
 			$reply="http://thoptv.org/, https://localpeers.com/local-tv/, or you can donate to localpeers and access local-tv VIP cloud (https://www.facebook.com/groups/pmplusers/permalink/1978165188918958/) Live TV works on any ISP network. ";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(autologin)') !== false){ //--------------------pmplbot(autologin)--------------------
+	}else if (stripos($message,'pmplbot(autologin)') !== false){ //--------------------pmplbot(autologin)--------------------
 		if (!already_replied($id,$message)){
 			$reply="You need to send an email to helpdesk@meghbelabroadband.com Don't forget to mention your username and the ISP helpdesk executive will activate autologin feature free of cost. Remember that autologin (without MAC binding) can reduce your account security and you should never share your IP address with anyone";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(dns)') !== false){ //--------------------pmplbot(dns)--------------------
+	}else if (stripos($message,'pmplbot(dns)') !== false){ //--------------------pmplbot(dns)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Meghbela Boradband intercepts and redirects all DNS requests to their own server. So, It doesn't matter which DNS you use. We requested the ISP to allow users to use public DNS servers and they denied the request with the following comment: 'For security reason the organization can’t provide open DNS facility.'
 			How can you tell if your ISP is redirecting your DNS queries? (https://www.facebook.com/groups/pmplusers/learning_content/?filter=1272969312845177&post=1933431940058950)
@@ -140,7 +140,7 @@ function match_keyword($id, $message){
 			How to use the DNS server of your own choice and protect your browsing history from the ISP (https://www.facebook.com/groups/pmplusers/permalink/1939092786159532/)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(https)') !== false){ //--------------------pmplbot(https)--------------------
+	}else if (stripos($message,'pmplbot(https)') !== false){ //--------------------pmplbot(https)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Some users reported that Meghbela discriminates traffic based on protocol.(https://www.facebook.com/groups/pmplusers/learning_content/?filter=1272969312845177&post=1933426356726175) Thus they are getting plan speed on HTTP contents but not getting proper bandwidth on HTTPS or FTP or while using VPN.
 			Meghbela Broadband denied this alligation with the following comment: 'Organization provide bandwidth as per the package policy and the difference of throughput as claimed is due to the established handshaking between the peer network elements where this organization is having no control.'
@@ -149,30 +149,30 @@ function match_keyword($id, $message){
 			Use the following keyworks for more info pmplbot(grievance), pmplbot(regulations)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(offtopic)') !== false){ //--------------------pmplbot(offtopic)--------------------
+	}else if (stripos($message,'pmplbot(offtopic)') !== false){ //--------------------pmplbot(offtopic)--------------------
 		if (!already_replied($id,$message)){
 			$reply="According to the above commenter, this post does not fit within the allowed topic list for this group. offtopic posts should have #OT or #offtopic hashtag at the beginning. We have a very broad definition of items which are considered ontopic. We generally allow moderate offtopic posts but if the topic is blantly offtopic then we will delete it. Please note that self promotion and spam is strictly prohibited. Repeated violatations will result in removal of the OP form this group. All actions will be taken on a case-by-case basis at the discretion of our moderators. I have notified the human moderators. Their decision will be considered final.";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(repost)') !== false){ //--------------------pmplbot(repost)--------------------
+	}else if (stripos($message,'pmplbot(repost)') !== false){ //--------------------pmplbot(repost)--------------------
 		if (!already_replied($id,$message)){
 			$reply="According to the above commenter, this topic has already been discussed in this group. Please search the group for similar posts.";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(torrent)') !== false){ //--------------------pmplbot(torrent)--------------------
+	}else if (stripos($message,'pmplbot(torrent)') !== false){ //--------------------pmplbot(torrent)--------------------
 		if (!already_replied($id,$message)){
 			$reply="If you are not getting peering speed on torrent, then please contact helpdesk. The users here can't help you with that. Torrent is completely legal in India if you are not downloading any copyrighted material. Currently Meghbela don't give exta bandwidth (torrent peering bandwidth) for torrent downloads. The torrent bandwidth is same as the plan bandwidth.
 			Some Useful Popular Torrent Sites: https://www.facebook.com/groups/pmplusers/permalink/1815982765137202/
 			How to create and share torrent(https://www.facebook.com/groups/pmplusers/permalink/1393770567358426/)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(grievance)') !== false){ //--------------------pmplbot(grievance)--------------------
+	}else if (stripos($message,'pmplbot(grievance)') !== false){ //--------------------pmplbot(grievance)--------------------
 		if (!already_replied($id,$message)){
 			$reply="This are some emails of Meghbela Broadbsn managenment or the advisory group. nodal@meghbelabroadband.com (nodal officer), deepalaya_wb_ngo@yahoo.co.in (NGO, advisory group), subhankar.dutta@meghbelabroadband.com (services-head), rehan@meghbelabroadband.com (Senior Manager - Regulatory). Read more at: https://www.facebook.com/groups/pmplusers/learning_content/?filter=1667488453378902
 			Please use the above emails only if your grievance is not resolved within the QoS time limit by sending an email to the helpdesk. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. If you still have some more time to fight for your consumer rights, my human friends have some emails of TRAI/Detarptment of Telecommunications. Please contact the admins. more: pmplbot(lco), pmplbot(regulations)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(connection') !== false){ //--------------------pmplbot(sconnectionproblem)--------------------
+	}else if (stripos($message,'pmplbot(connection') !== false){ //--------------------pmplbot(sconnectionproblem)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Thank you for sharing your connection problem with us. This helps other user to get an overall picture of the quality of the network and the users can help you if they have suffered the similar situation before. You should also contact the helpdesk of the ISP if you think the problem is not arising from your own equipment(s). more: pmplbot(contact)
 			For troubleshooting, check ping at your local gateway, 172.17.8.1 and 8.8.8.8(eg: open cmd and run: ping 172.17.8.1 -t) to see if any RTO(request timed out) is occuring.
@@ -181,7 +181,7 @@ function match_keyword($id, $message){
 			If your line is not restored within 3 days, then the ISP need to refund 7 days charge or extend validity for 7 days. Similarly 15 days if the connection if the restoration takes more 7 days and 30 dyas in case the issue remanins unresolved for more than 15 days. This is your consumer right but remember to take sufficient proof, so that you can prove this later, in case the ISP denies to refund/extend and you need to approach pgportal/consumer affairs. more: pmplbot(grievance), pmplbot(regulations), pmplbot(lco)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(speed') !== false){ //--------------------pmplbot(speedproblem)--------------------
+	}else if (stripos($message,'pmplbot(speed') !== false){ //--------------------pmplbot(speedproblem)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Thank you for sharing your speed problem with us. The users here can't do much to improve the situation but this helps other user to get an overall picture of the quality of the network. You should contact the helpdesk of the ISP. more: pmplbot(contact)
 			For troubleshooting, check ping(open cmd and run: ping 172.17.8.1 -t) to see if any RTO(request timed out) is occuring, If you are getting low speed on a perticular website, then measure speed upto ISP node (Go to speedtest.net and select 'Meghbela Cable & Broadband Services Pvt. Ltd' from the server list) and check if the bandwidth upto ISP node is okay. If you get low speed upto ISP node, then register a docket at helpdesk and this type of problem is fixed soon if your local LCO is helpful (in case this is a local problem). If you get low speed on a particular website, then the issue is unlikely to be resolved soon, especially if the website is not popular. However you can still try to convince the helpdesk to register a docket. But as other users have reported earlier, they will probably download some cached/peered/CDN contents and claim everything is okay. more: pmplbot(grievance), pmplbot(https)
@@ -193,24 +193,24 @@ function match_keyword($id, $message){
 			4. Ping at 172.17.8.1 (ping 172.17.8.1 -t)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(router)') !== false){ //--------------------pmplbot(router)--------------------
+	}else if (stripos($message,'pmplbot(router)') !== false){ //--------------------pmplbot(router)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Rouer suggestions depend on the other user's own perspective and experiance. The suggestions are mostly biased. Users have done similar discussions in the past. Please search the group for those posts.
 			First you need to fix a budget (eg: less than 1000, around 3000, more than 5000 etc). Otherwise, you will never get perfect suggestion.
 			Then the rule of thumb is always go for gigabit routers and dual band routers if your budget permits. Here is a word of caution, the advertised speed is generally wireless speed. Suppose a router mentions 300Mbps, that means the wireless speed is 300Mbps. If you want to use 200Mbps conenction from your ISP, this router won't work and you need to have a router with gigabit WAN port. WAN port speed is mentioned separately in the specification. Low end routers have generally 10/100 port which is not gigabit.";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(howinternetworks)') !== false){ //------------------pmplbot(howinternetworks)------------------
+	}else if (stripos($message,'pmplbot(howinternetworks)') !== false){ //------------------pmplbot(howinternetworks)------------------
 		if (!already_replied($id,$message)){
 			$reply="Understanding the basics of the internet will help us to use this marvelous technology more efficiently and will also make us more confident. Learn more through interesting videos here: https://www.facebook.com/groups/pmplusers/learning_content/?filter=1067618223407494";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(onlinerecharge)') !== false){ //--------------------pmplbot(onlinerecharge)--------------------
+	}else if (stripos($message,'pmplbot(onlinerecharge)') !== false){ //--------------------pmplbot(onlinerecharge)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Online recharge is not available for all users/zones. If your zone has online recharge facility, then you should be able to recharge from your myaccount(http://mypage.meghbelabroadband.in) portal. In some cases, even if online recharge facility is blocked on myaccount portal, you can visit paytm (web or app) and recharge plans from there. Goto broadband->Select Meghbela from the provider list->Enter your username(the one you use to login).";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(conduct)') !== false){ //--------------------pmplbot(conduct)--------------------
+	}else if (stripos($message,'pmplbot(conduct)') !== false){ //--------------------pmplbot(conduct)--------------------
 		if (!already_replied($id,$message)){
 			$reply="The above commenter belives that this thread is not abiding by our code of conduct. Please build a community that is rooted in kindness, collaboration, and mutual respect. No unfriendly language. No personal attacks. No bigotry. No harassment.
 			Every person contributes to building a kind, respectful community. If you find unacceptable behavior directed at yourself or others, you can report it to admins.
@@ -218,22 +218,22 @@ function match_keyword($id, $message){
 			This comment incorporates ideas and language from the StackOverflow codes of conduct.";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(liveip)') !== false){ //--------------------pmplbot(liveip)--------------------
+	}else if (stripos($message,'pmplbot(liveip)') !== false){ //--------------------pmplbot(liveip)--------------------
 		if (!already_replied($id,$message)){
 			$reply="You need to purchage internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. Price 2500+GST per annum. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. more: pmplbot(contact)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(movierequest)') !== false){ //--------------------pmplbot(movierequest)--------------------
+	}else if (stripos($message,'pmplbot(movierequest)') !== false){ //--------------------pmplbot(movierequest)--------------------
 		if (!already_replied($id,$message)){
 			$reply="The above commenter thinks that this post is a query regarding how to download some specific content from the internet. Please be advised that we don't support any kind of piracy in this group. However localpeers VIP member can request for specific contents in the relevant section on the website. We don't delete such posts because some users can actually help the OP but everybody is sole responsible for their comments/actions. more: pmplbot(torrent), pmplbot(localpeers)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(portforward)') !== false){ //--------------------pmplbot(portforward)--------------------
+	}else if (stripos($message,'pmplbot(portforward)') !== false){ //--------------------pmplbot(portforward)--------------------
 		if (!already_replied($id,$message)){
 			$reply="You can use the port forward feature on yout router, but that won't do anyting untill you have enabled the dynamic IP pool feature or purchased live IP from the ISP. Dynamic IP pool or DNAT feature is enabled on the discretion of the ISP for rare cases. more: pmplbot(liveip)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(regulation') !== false){ //--------------------pmplbot(regulation)--------------------
+	}else if (stripos($message,'pmplbot(regulation') !== false){ //--------------------pmplbot(regulation)--------------------
 		if (!already_replied($id,$message)){
 			$reply="https://www.facebook.com/groups/pmplusers/learning_content/?filter=1272969312845177&post=1932195363515941
 			Broadband Policy, 2004: http://www.dot.gov.in/broadband-policy-2004
@@ -243,7 +243,7 @@ function match_keyword($id, $message){
 			THE PERSONAL DATA PROTECTION DRAFT BILL, 2018: http://meity.gov.in/writereaddata/files/Personal_Data_Protection_Bill%2C2018_0.pdf";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(wifiproblem)') !== false){ //--------------------pmplbot(wifiproblem)--------------------
+	}else if (stripos($message,'pmplbot(wifiproblem)') !== false){ //--------------------pmplbot(wifiproblem)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Please mention the follwing details; so that, the users will be able to help you quickly.
 			1. Mention your router model
@@ -260,7 +260,7 @@ function match_keyword($id, $message){
 			9.[OPTIONAL] Try resetting the router to factory settings.";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(speedtest)') !== false){ //--------------------pmplbot(speedtest)--------------------
+	}else if (stripos($message,'pmplbot(speedtest)') !== false){ //--------------------pmplbot(speedtest)--------------------
 		if (!already_replied($id,$message)){
 			$reply="The above commenter thinks that your speedtest results are incorrect or misleading. Performing speedtest using ISP servers/CDN/peered websites won't show your actual internet experience because your ISP may not have sufficient upstream international bandwidth or they may have routing problems or they may discriminate traffic based on protocol. more: pmplbot(https)
 			Thus, you need to provide the follwing screenshots to indicate your actual internet experience
@@ -271,7 +271,7 @@ function match_keyword($id, $message){
 			5. Speedtest while downloading via ftp protocol";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(lco)') !== false){ //--------------------pmplbot(lco)--------------------
+	}else if (stripos($message,'pmplbot(lco)') !== false){ //--------------------pmplbot(lco)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Some users reported that their LCO charges more than MRP to recharge packages. These dishonest LCOs threaten users to disconnect lines and violate consumer rights in different ways. The ISP also don't want to take responsibilty and they don't want to take complaint against LCOs. Users should always do their best to stop these illegal and unethical activities. Meghbela is responsible for the activity of their partners. Thus, First send email to thier higher authorities and if they deny responsibility, go to pgportal or consumer affairs department. pgportal is quite helpful in thsese cases but you should always keep proofs (eg: LCO bill). If LCO denies to give a bill, report this too becauase this is illegal. My human friends can always help you to resolve these issues but you have to dedicate some of your time to lodge grievances at proper places.
 			Some successful pgportal cases:
@@ -280,7 +280,7 @@ function match_keyword($id, $message){
 			more: pmplbot(grievances)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(security)') !== false){ //--------------------pmplbot(security)--------------------
+	}else if (stripos($message,'pmplbot(security)') !== false){ //--------------------pmplbot(security)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Avoid posting any personally identifiable informations like IP, MAC, username tec. in this group.
 			Always change your default login password(12345)[Login into myaccount portal->click 'chnage modem password'].
@@ -288,11 +288,11 @@ function match_keyword($id, $message){
 			Myaccount Portal(http://mypage.meghbelabroadband.in)";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(redflag)') !== false){ //--------------------pmplbot(redflag)--------------------
+	}else if (stripos($message,'pmplbot(redflag)') !== false){ //--------------------pmplbot(redflag)--------------------
 		if (!already_replied($id,$message)){
 			$GLOBALS['redflag']=true;
 		}
-	}else if (strpos($message,'pmplbot(suggest') !== false || strpos($message,'pmplbot(bug)') !== false){
+	}else if (stripos($message,'pmplbot(suggest') !== false || stripos($message,'pmplbot(bug)') !== false){
 	                                                        //--------------------pmplbot(suggestion or bug)--------------------
 		if (!already_replied($id,$message)){
 			$reply="Thank you for your suggestion/bug report. I have recorded the suggestion/bug for my developers";
@@ -300,7 +300,7 @@ function match_keyword($id, $message){
 			logger('SUGGESTION/BUG RECEIVED: ['.$id.'] '.$message);
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot(help)') !== false){ //--------------------pmplbot(help)--------------------
+	}else if (stripos($message,'pmplbot(help)') !== false){ //--------------------pmplbot(help)--------------------
 		if (!already_replied($id,$message)){
 			$reply="I search for pre-defined keywords (every 60 seconds) in the main post and in the first level comments of that post. So, if you write a 2nd level comment (comment to another comment), I won't be able to reply. Moroever, if you use 2 keywords in a single post/comment, I will reply only to the first keyword. Editing/Updating the post/keywork may not work, try adding a new comment.
 			I am in beta version. So, mistakes are expected. I am not affiliated with PMPL or Meghbela Broadband. Please send your suggestions or report bug directly using the keywords pmplbot(suggest) or pmplbot(bug). If you need to know more, please use pmplbot(whoareyou), pmplbot(status). The following keywords are available: [==usage pmplbot(keyword) eg: pmplbot(help), pmplbot(contact)]
@@ -311,7 +311,7 @@ function match_keyword($id, $message){
 			-onlinerecharge
 			-grievance (how to escalate grievances)
 			-autologin
-			-check:url (checks connectivity to the given url)[Replace the URL. eg: pmplbot(check:google.com)]
+			-check:url (checks if the website is rechable)[Replace the URL. eg: pmplbot(check:localpeers.com)](It only works if a webserver is running at the destination. It does not check for ping)
 			-joke (posts a random joke)
 			-localpeers
 			-livetv
@@ -340,7 +340,7 @@ function match_keyword($id, $message){
 			";
 			post_reply($id, $reply);
 		}
-	}else if (strpos($message,'pmplbot') !== false){ //--------------------pmplbot( xxx )--------------------
+	}else if (stripos($message,'pmplbot') !== false){ //--------------------pmplbot( xxx )--------------------
 		if (!already_replied($id,$message)){
 			$reply="unknown keyword. more: pmplbot(help)";
 			post_reply($id, $reply);
