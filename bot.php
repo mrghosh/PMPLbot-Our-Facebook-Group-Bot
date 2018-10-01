@@ -3,6 +3,7 @@ ignore_user_abort(true);
 set_time_limit(0);
 ob_implicit_flush(true); //flush()
 ob_end_clean(); //ob_flush()
+date_default_timezone_set('Asia/Kolkata');
 //pcntl is not supported on Windows
 //pcntl_signal(SIGINT,  "sig_handler");
 //pcntl_signal(SIGTERM, "sig_handler");
@@ -16,10 +17,15 @@ logger("========================================STARTING SCRIPT=================
 $time_start = time();
 $redflag=false;
 $loopcount=1;
-$version='0.0.3';
+$version='0.0.4';
 $interval=30;
-if(is_file('parent_id.txt'))
+//if the file is not present file() will return error. if the file is present but blank,it will retun empty array.
+//heroku will start with clean filesystem after each restart, thus we are not bothered with the parent_id.txt size. If it is too big, we need to implement fgets() and array_shift() to keep it memory efficient
+if(is_file('parent_id.txt')){
 	$parent_id=file('parent_id.txt', FILE_IGNORE_NEW_LINES); //read parent ids of previous posts from file
+}else{
+	$parent_id=array();
+}
 while (!file_exists('stop.txt')) {
 	//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	logger("--------------------starting loop(".$loopcount.")--------------------");
@@ -97,7 +103,7 @@ function match_keyword($id, $message, $created_time){
 	}else if (stripos($message,'pmplbot(status)') !== false){ //--------------------pmplbot(status)--------------------
 		if (!already_replied($id,$message,$created_time)){
 			$reply="Running for: " . secondsToTime(time() - $GLOBALS['time_start'])." and loopcount:".$GLOBALS['loopcount']."
-			Beta version".$GLOBALS['version'];
+			Beta version".$GLOBALS['version']." Deployed on Heroku";
 			post_reply($id, $reply);
 		}
 	}else if (stripos($message,'pmplbot(plans)') !== false){ //--------------------pmplbot(plans)--------------------
@@ -269,7 +275,8 @@ function match_keyword($id, $message, $created_time){
 			2. Speedtest on https://speed.measurementlab.net
 			3. Speedtest on http://openload.co/speedtest
 			4. Speedtest on fast.com
-			5. Speedtest while downloading via ftp protocol";
+			5. Download speed while downloading a zip file from Github (eg: https://github.com/souravndp/TEST/archive/master.zip)
+			6. Speedtest while downloading via ftp protocol";
 			post_reply($id, $reply);
 		}
 	}else if (stripos($message,'pmplbot(lco)') !== false){ //--------------------pmplbot(lco)--------------------
@@ -356,7 +363,7 @@ function already_replied($id,$message,$created_time){
 		//logger("Already replied ".$id);
 		return true;
 	}else if((time()-$created_time)>120){
-		logger("Found match but TOO OLD [".$id."] Cretaed time: [".$created_time."] ".$message);
+		//logger("Found match but TOO OLD [".$id."] Cretaed time: [".$created_time."] ".$message);
 		return true;
 	}else{
 		logger("Found MATCH to reply [".$id."]".$message);
@@ -387,6 +394,7 @@ function post_reply($id, $reply){
 			if (strpos($reply_id,'"id":') !== false){
 				logger( "Successfully posted comment. Received reply:" . $reply_id);
 				array_push($parent_id, $id);
+				if (count($parent_id)>100) array_shift($parent_id);
 				file_put_contents('parent_id.txt', $id.PHP_EOL, FILE_APPEND);
 				file_put_contents('comment_id.txt', $reply_id.PHP_EOL, FILE_APPEND);
 			}else{
@@ -459,7 +467,7 @@ function logger($message){
 	file_put_contents('fblog.txt', $message.PHP_EOL , FILE_APPEND);
 	//https://gist.github.com/troy/2220679
 	$sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-	$syslog_message = "<22>" . date('M d H:i:s ') . 'PMPLBOT: ' . $message;
+	$syslog_message = "<22>" . date('M d H:i:s ') . 'HEROKU PMPLBOT: ' . $message;
 	socket_sendto($sock, $syslog_message, strlen($syslog_message), 0, 'logs6.papertrailapp.com', '52066'); //TODO: save these into env
 	socket_close($sock);
 }
@@ -498,5 +506,7 @@ function secondsToTime($seconds) {
 		"id": "1991800594222084"
 		}
 	another method: when match found in the main post, add the replied first level comment id in the parent_id.txt
+4. "check download speed of a particular file" function
+
 */
 ?>
