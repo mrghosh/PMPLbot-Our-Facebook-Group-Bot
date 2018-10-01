@@ -507,6 +507,7 @@ function secondsToTime($seconds) {
 		}
 	another method: when match found in the main post, add the replied first level comment id in the parent_id.txt
 4. "check download speed of a particular file" function
+5. comment on old unreplied posts to bring them on top.
 
 */
 ?>
