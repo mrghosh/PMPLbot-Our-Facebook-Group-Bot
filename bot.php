@@ -398,11 +398,11 @@ function post_reply($id, $reply){
 				file_put_contents('parent_id.txt', $id.PHP_EOL, FILE_APPEND);
 				file_put_contents('comment_id.txt', $reply_id.PHP_EOL, FILE_APPEND);
 			}else{
-				logger( "Error while posting comment. Didn't receive the comment success id. Received reply:" . $reply_id);
+				logger( "Error while posting comment. Didn't receive the comment success id. Received reply: " . $reply_id);
 			}
 			break;
 		default:
-			logger( 'Error while posting comment. HTTP CODE:' . $http_code);
+			logger( 'Error while posting comment. HTTP CODE: [' . $http_code.'] Received reply: '. $reply_id);
 		}
 	}
 	curl_close ($ch);
@@ -451,10 +451,10 @@ function check_url($url){
 		logger($command);
 		$http_code=exec($command);
 		if(strpos($http_code,'000') === false){
-			$reply="The URL seems UP/RECHABLE (HTTP CODE ".$http_code.") from my network. (Reverify at http://www.isitdownrightnow.com)";
+			$reply="The URL seems UP/RECHABLE (HTTP CODE ".$http_code.") from my network(Heroku). (Reverify at http://www.isitdownrightnow.com)";
 			logger($reply);
 		} else{
-			$reply="The URL seems DOWN/UNRECHABLE from my network (Timeout set at 5 sec. Also reverify at http://www.isitdownrightnow.com)";
+			$reply="The URL seems DOWN/UNRECHABLE from my network(Heroku) (Timeout set at 5 sec. Also reverify at http://www.isitdownrightnow.com)";
 			logger($reply."HTTP CODE: ".$http_code);
 		}
 	}
