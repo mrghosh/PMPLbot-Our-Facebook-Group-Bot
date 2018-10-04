@@ -2,7 +2,7 @@
 
 Administrators of the facebook group, Pacenet Meghbela Broadband (PMPL) Forum, have built the Pacenet Meghbela Broadband Forum app to manage the group more effectively.
 
-Users can't login or use this app. This app posts on behalf of the page 'Meghbela Broadband FB Group Admin' which is linked with the group. Permanent Page token is being used
+Users can't login or use this app. This app posts on behalf of the page 'Meghbela Broadband FB Group Virtual Assistant' which is linked with the group. Permanent Page token is being used
 
 The scope of this app is describe below
 
@@ -11,3 +11,4 @@ The scope of this app is describe below
 3. Post automatic admin announcements
 
 Group Link: https://www.facebook.com/groups/pmplusers/
+Privacy policy: https://sourav.eu.org/privacy.html
