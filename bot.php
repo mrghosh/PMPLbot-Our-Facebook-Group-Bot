@@ -6,7 +6,7 @@ ob_end_clean(); //ob_flush()
 date_default_timezone_set('Asia/Kolkata');
 //pcntl is not supported on Windows
 //pcntl_signal(SIGINT,  "sig_handler");
-//pcntl_signal(SIGTERM, "sig_handler");
+pcntl_signal(SIGTERM, "sig_handler");
 //pcntl_signal(SIGHUP,  "sig_handler");
 $hLock=fopen(__FILE__.".lock", "w+");
 if(!flock($hLock, LOCK_EX | LOCK_NB)){
@@ -17,7 +17,7 @@ logger("========================================STARTING SCRIPT=================
 $time_start = time();
 $redflag=false;
 $loopcount=1;
-$version='0.0.4';
+$version='0.0.5';
 $interval=30;
 //if the file is not present file() will return error. if the file is present but blank,it will retun empty array.
 //heroku will start with clean filesystem after each restart, thus we are not bothered with the parent_id.txt size. If it is too big, we need to implement fgets() and array_shift() to keep it memory efficient
@@ -50,6 +50,11 @@ while (!file_exists('stop.txt')) {
 				foreach($post['comments']['data'] as $comment){
 					//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 					//echo '['.$comment['id'].']['.$comment['created _time'].']'.$comment['message'].'<br>';
+					//AVOIDING TO REPLY TO MY OWN FIRST LEVEL COMMENT //266874644153290
+					if(isset($comment['from']['id']) && $comment['from']['id']==="266874644153290"){
+						logger('From field of the comment data is set and it has my ID: '.$comment['from']['id'].' The comment is ['.$post['id'].'_'.$comment['id'].'] '.$comment['message']);
+						continue;
+					}
 					match_keyword($post['id'].'_'.$comment['id'],$comment['message'],$comment['created_time']);
 				}
 			}
@@ -76,7 +81,8 @@ function match_keyword($id, $message, $created_time){
 			$reply="pong";
 			post_reply($id, $reply);
 		}
-	}else if (stripos($message,'pmplbot(contact)') !== false) { //--------------------pmplbot(contact)--------------------
+	}else if (stripos($message,'pmplbot(contact)') !== false || stripos($message,'pmplbot(helpline)') !== false) {
+		                                                     //--------------------pmplbot(contact)--------------------
 		if (!already_replied($id,$message,$created_time)){
 			$reply="helpdesk@meghbelabroadband.com, 1800-102-5111 (tollfree), 033-4029-1100
 			More: pmplbot(grievance)";
@@ -87,7 +93,8 @@ function match_keyword($id, $message, $created_time){
 			$reply=get_joke();
 			post_reply($id, $reply);
 		}
-	}else if (stripos($message,'pmplbot(whoareyou)') !== false){ //--------------------pmplbot(whoareyou)--------------------
+	}else if (stripos($message,'pmplbot(whoareyou)') !== false || stripos($message,'pmplbot(whoami)') !== false){
+		                                                       //--------------------pmplbot(whoareyou)--------------------
 		if (!already_replied($id,$message,$created_time)){
 			$reply="Administrators of the Facebook group, Pacenet Meghbela Broadband (PMPL) Forum, have built me to manage the group more effectively. I am not fully prepared yet; but I will be soon. I am not affiliated with PMPL or Meghbela Broadband.
 			I am written in PHP and I periodically check for keyword every 60 seconds. I use the Facebook graph API to interact with the Facebook platform.
@@ -188,7 +195,7 @@ function match_keyword($id, $message, $created_time){
 			If your line is not restored within 3 days, then the ISP needs to refund 7 days charge or extend validity for 7 days. Similarly, 15 days if the connection if the restoration takes more 7 days and 30 days in case the issue remains unresolved for more than 15 days. This is your consumer right but remember to take sufficient proof, so that you can prove this later, in case the ISP denies to refund/extend and you need to approach pgportal/consumer affairs. more: pmplbot(grievance), pmplbot(regulations), pmplbot(lco)";
 			post_reply($id, $reply);
 		}
-	}else if (stripos($message,'pmplbot(speed') !== false){ //--------------------pmplbot(speedproblem)--------------------
+	}else if (stripos($message,'pmplbot(speedproblem') !== false){ //--------------------pmplbot(speedproblem)--------------------
 		if (!already_replied($id,$message,$created_time)){
 			$reply="Thank you for sharing your speed problem with us. The users here can't do much to improve the situation but this helps other users to get an overall picture of the quality of the network. You should contact the helpdesk of the ISP. more: pmplbot(contact)
 			For troubleshooting, check ping(open cmd and run: ping 172.17.8.1 -t) to see if any RTO(request timed out) is occurring, If you are getting low speed on a particular website, then measure speed up to ISP node (Go to speedtest.net and select 'Meghbela Cable & Broadband Services Pvt. Ltd' from the server list) and check if the bandwidth up to ISP node is okay. If you get low speed up to ISP node, then register a docket at the helpdesk, and this type of problem is fixed soon if your local LCO is helpful (in case this is a local problem). If you get low speed on a particular website, then the issue is unlikely to be resolved soon, especially if the website is not popular. However, you can still try to convince the helpdesk to register a docket. But as other users have reported earlier, they will probably download some cached/peered/CDN contents and claim everything is okay. more: pmplbot(grievance), pmplbot(https)
@@ -314,7 +321,7 @@ function match_keyword($id, $message, $created_time){
 			$reply="I search for pre-defined keywords (every 60 seconds) in the main post and in the first level comments of that post. So, if you write a 2nd level comment (comment to another comment), I won't be able to reply. Moreover, if you use 2 or more keywords in a single post/comment, I will reply only to any one of the keywords. Editing/Updating the post/keyword may not work, try adding a new comment.
 			I am in beta version. So, mistakes are expected. I am not affiliated with PMPL or Meghbela Broadband. Please send your suggestions or report bug directly using the keywords pmplbot(suggest) or pmplbot(bug). If you need to know more, please use pmplbot(whoareyou), pmplbot(status). The following keywords are available: [==usage pmplbot(keyword) eg: pmplbot(help), pmplbot(contact)]
 			-help (displays this current comment)
-			-contact (Meghbela broadband contact)
+			-contact(Meghbela broadband contact) (-helpline is an alias)
 			-plans
 			-alpha2
 			-onlinerecharge
@@ -344,7 +351,7 @@ function match_keyword($id, $message, $created_time){
 			-suggestion (suggest features to the developers, write the suggestion in the same comment with this keyword)
 			-bug (report bugs to the developers, write the bug in the same comment with this keyword)
 			-redflag (==CAUTION==If I misbehave, please use the keyword pmplbot(redflag). It will stop me from posting any comment for the current cycle until restarted. This flag is only for serious incidents (eg: I am posting random comments very frequently etc.). If you use it without proper reason, my human friends will permanently ban/block you from the group.)
-			-whoareyou (More details about me. My code is open source)
+			-whoareyou (More details about me. My code is open source)(-whoami is an alias)
 			-status (Display current status)
 			";
 			post_reply($id, $reply);
@@ -397,6 +404,9 @@ function post_reply($id, $reply){
 				if (count($parent_id)>100) array_shift($parent_id);
 				file_put_contents('parent_id.txt', $id.PHP_EOL, FILE_APPEND);
 				file_put_contents('comment_id.txt', $reply_id.PHP_EOL, FILE_APPEND);
+				//TRYING TO LOG ONLY ID VALUE. NOT THE WHOLE JSON REPLY
+				$obj_reply_id = json_decode($reply_id, true);
+				file_put_contents('comment_id.txt', $obj_reply_id['id'].PHP_EOL, FILE_APPEND);
 			}else{
 				logger( "Error while posting comment. Didn't receive the comment success id. Received reply: " . $reply_id);
 			}
@@ -483,7 +493,8 @@ function sig_handler($sig) {
 function secondsToTime($seconds) {
     $dtF = new \DateTime('@0');
     $dtT = new \DateTime("@$seconds");
-    return $dtF->diff($dtT)->format('%a days, %h hours, %i minutes and %s seconds');
+    //return $dtF->diff($dtT)->format('%a days, %h hours, %i minutes and %s seconds');
+    return $dtF->diff($dtT)->format('%h hours, %i minutes and %s seconds');
 }
 //=============================================================================
 
@@ -495,7 +506,7 @@ function secondsToTime($seconds) {
 /*TODO: 
 1. 8.8.8.8 does not respond to curl. it responds to ping. change the code to use ping
 2. support 2nd level comments
-3. fix re-comment on bot's own first level comment which contains more:pmplbot() keywords. match [from][id] if present in comments.
+3. [DONE] fix re-comment on bot's own first level comment which contains more:pmplbot() keywords. match [from][id] if present in comments.
 		{
 		"created_time": 1538303783,
 		"from": {
