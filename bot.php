@@ -6,7 +6,13 @@ ob_end_clean(); //ob_flush()
 date_default_timezone_set('Asia/Kolkata');
 //pcntl is not supported on Windows
 //pcntl_signal(SIGINT,  "sig_handler");
-pcntl_signal(SIGTERM, "sig_handler");
+if (function_exists('pcntl_signal')) logger('pcntl_signal function available');
+//HEROKU REQUIRES COMPOSER.LOCK IF ANY DEPENDENCY IS MENTIONED IN COMPOSER.JSON. I DON'T WANT TO INSTALL COMPOSER ETC. THUS, PCNTL EXTENSION IS NOT LOADED
+//https://devcenter.heroku.com/articles/php-support#using-optional-extensions and https://stackoverflow.com/questions/27380365/heroku-how-to-enable-gd-on-heroku-php-application
+if(in_array  ('pcntl', get_loaded_extensions())) {
+	logger('pcntl extension loaded');
+}
+//pcntl_signal(SIGTERM, "sig_handler");
 //pcntl_signal(SIGHUP,  "sig_handler");
 $hLock=fopen(__FILE__.".lock", "w+");
 if(!flock($hLock, LOCK_EX | LOCK_NB)){
