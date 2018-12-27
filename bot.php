@@ -265,7 +265,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 		}else if (stripos($message,'pmplbot(liveip)') !== false || stripos($message,'pmplbot liveip') !== false){
 			                                                    //--------------------pmplbot(liveip)--------------------
 			if (!already_replied($id,$message,$created_time)){
-				$reply="You need to purchage internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. Price 2500+GST per annum. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. more: pmplbot(contact)";
+				$reply="You need to purchase internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. Price 2500+GST per annum. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. more: pmplbot(contact)";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(movierequest)') !== false || stripos($message,'pmplbot movierequest') !== false){
