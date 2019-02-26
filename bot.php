@@ -24,7 +24,7 @@ $time_start = time();
 $redflag=false;
 $loopcount=1;
 $version='0.1.1';
-$interval=30;
+$interval=60;
 //if the file is not present file() will return error. if the file is present but blank,it will retun empty array.
 //heroku will start with clean filesystem after each restart, thus we are not bothered with the parent_id.txt size. If it is too big, we need to implement fgets() and array_shift() to keep it memory efficient
 if(is_file('parent_id.txt')){
@@ -36,7 +36,7 @@ while (!file_exists('stop.txt')) {
 	//pcntl_signal_dispatch(); //DISPATCHING QUEUED SIGNALS
 	logger("--------------------starting loop(".$loopcount.")--------------------");
 	$ch = curl_init();
-	$url='https://graph.facebook.com/v3.1/456642647737894/feed/?fields=message,created_time,comments.order(reverse_chronological).filter(stream).summary(1){parent,message,created_time,from}&limit=5&since=-120%20seconds&date_format=U&access_token='.getenv("FB_PAGE_TOKEN");
+	$url='https://graph.facebook.com/v3.1/456642647737894/feed/?fields=message,created_time,comments.order(reverse_chronological).filter(stream).limit(5){parent,message,created_time,from}&limit=2&since=-180%20seconds&date_format=U&access_token='.getenv("FB_PAGE_TOKEN");
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_TIMEOUT,10);
@@ -155,7 +155,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 		}else if (stripos($message,'pmplbot(livetv)') !== false || stripos($message,'pmplbot livetv') !== false){
 			                                                    //--------------------pmplbot(livetv)--------------------
 			if (!already_replied($id,$message,$created_time)){
-				$reply="http://thoptv.org/, https://localpeers.com/local-tv/, or you can donate to localpeers and access local-tv VIP cloud (https://www.facebook.com/groups/pmplusers/permalink/1978165188918958/) Live TV works on any ISP network. ";
+				$reply="http://thoptv.services/, https://localpeers.com/local-tv/, or you can donate to localpeers and access local-tv VIP cloud (https://www.facebook.com/groups/pmplusers/permalink/1978165188918958/) Live TV works on any ISP network. ";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(autologin)') !== false || stripos($message,'pmplbot autologin') !== false){
@@ -180,7 +180,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				Meghbela Broadband denied this allegation with the following comment: 'Organization provide bandwidth as per the package policy and the difference of throughput as claimed is due to the established handshaking between the peer network elements where this organization is having no control.'
 				However, some users still get low bandwidth on HTTPS websites like Github, Netflix, etc. Unfortunately, if you call the helpline, they will download Ubuntu, etc. (read cached/CDN/peered contents) and claim that their network is okay. If you can show enough evidence, sometimes, only if you are lucky, they take a docket and resolve it temporarily. For this purpose, you can use the following list of HTTPS and FTP Linux mirrors: (https://www.facebook.com/groups/pmplusers/learning_content/?filter=1272969312845177&post=1801185129950299)
 				If you think that your internet experience is getting degraded or your consumer rights are getting violated because of this, then please take some of your time and report these incidents to TRAI/pgportal with video evidence.
-				Use the following keyworks for more info pmplbot(grievance), pmplbot(regulations)";
+				Use the following keyworks for more info pmplbot(grievance), pmplbot(regulation)";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(offtopic)') !== false || stripos($message,'pmplbot offtopic') !== false){
@@ -206,8 +206,8 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 		}else if (stripos($message,'pmplbot(grievance)') !== false || stripos($message,'pmplbot grievance') !== false){
 			                                                       //--------------------pmplbot(grievance)--------------------
 			if (!already_replied($id,$message,$created_time)){
-				$reply="These are some emails of Meghbela Broadband management or the advisory group. nodal@meghbelabroadband.com (nodal officer), deepalaya_wb_ngo@yahoo.co.in (NGO, advisory group), subhankar.dutta@meghbelabroadband.com (services-head), rehan@meghbelabroadband.com (Senior Manager - Regulatory). Read more: https://www.facebook.com/groups/pmplusers/learning_content/?filter=1667488453378902
-				Please use the above emails only if your grievance is not resolved within the QoS time limit by sending an email to the helpdesk. The above information is provided as is, the information can be outdated and I have no responsibility for the accuracy. If you still have some more time to fight for your consumer rights, my human friends have some emails of TRAI/Department of Telecommunications. Please contact the admins. more: pmplbot(regulations)";
+				$reply="These are some emails of Meghbela Broadband management or the advisory group. nodal@meghbelabroadband.com (nodal officer), deepalaya_wb_ngo@yahoo.co.in (NGO, advisory group), soumen.sardar@pmplbroadband.net (services-head), sugata@meghbelabroadband.com,  tapabrata@meghbelabroadbroadband.com, rehan@meghbelabroadband.com (Senior Manager - Regulatory). Read more: https://www.facebook.com/groups/pmplusers/learning_content/?filter=1667488453378902
+				Please use the above emails only if your grievance is not resolved within the QoS time limit by sending an email to the helpdesk. The above information is provided as is, the information can be outdated and I have no responsibility for the accuracy. If you still have some more time to fight for your consumer rights, my human friends have some emails of TRAI/Department of Telecommunications. Please contact the admins. more: pmplbot(regulation)";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(connection') !== false || stripos($message,'pmplbot connection') !== false){
@@ -217,7 +217,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				For troubleshooting, check ping at your local gateway, 172.17.8.1 and 8.8.8.8(e.g. open cmd and run: ping 172.17.8.1 -t) to see if any RTO(request timed out) is occurring.
 				Try connecting the cable directly to your computer, rather than connecting through a personal router (this step is required to eliminate any problem arising from your router). more: pmplbot(wifiproblem)
 				If you have already notified the ISP, but you are still facing the same problem continuously after 3-4 days, you may need to escalate the grievance to the higher level. more: pmplbot(grievance)
-				If your line is not restored within 3 days, then the ISP needs to refund 7 days charge or extend validity for 7 days. Similarly, 15 days if the connection if the restoration takes more 7 days and 30 days in case the issue remains unresolved for more than 15 days. This is your consumer right but remember to take sufficient proof, so that you can prove this later, in case the ISP denies to refund/extend and you need to approach pgportal/consumer affairs. more: pmplbot(grievance), pmplbot(regulations), pmplbot(lco)";
+				If your line is not restored within 3 days, then the ISP needs to refund 7 days charge or extend validity for 7 days. Similarly, 15 days if the connection if the restoration takes more 7 days and 30 days in case the issue remains unresolved for more than 15 days. This is your consumer right but remember to take sufficient proof, so that you can prove this later, in case the ISP denies to refund/extend and you need to approach pgportal/consumer affairs. more: pmplbot(grievance), pmplbot(regulation), pmplbot(lco)";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(speedproblem') !== false || stripos($message,'pmplbot speedproblem') !== false){
@@ -265,7 +265,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 		}else if (stripos($message,'pmplbot(liveip)') !== false || stripos($message,'pmplbot liveip') !== false){
 			                                                    //--------------------pmplbot(liveip)--------------------
 			if (!already_replied($id,$message,$created_time)){
-				$reply="You need to purchase internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. Price 2500+GST per annum. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. more: pmplbot(contact)";
+				$reply="You need to purchage internet routable live static IP, if you want to reach your device from the internet. Please contact the ISP if you are interested in purchasing live IP. Price 2500+GST per annum. The above information is provided as is, the infromation can be outdated and I have no responsibiliy for the accuracy. more: pmplbot(contact)";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(movierequest)') !== false || stripos($message,'pmplbot movierequest') !== false){
@@ -306,7 +306,8 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				6. Ping response to your router IP
 				7.[OPTIONAL] Try disabling antivirus and Firewall.
 				8.[OPTIONAL] Try setting IP and DNS manually on your computer.
-				9.[OPTIONAL] Try resetting the router to factory settings.";
+				9.[OPTIONAL] Try resetting the router to factory settings.
+				10.[OPTIONAL] Disable and re-enable your computer's WiFi interface (search or run ncpa.cpl)";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(speedtest)') !== false || stripos($message,'pmplbot speedtest') !== false){
@@ -318,8 +319,9 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				2. Speedtest on https://speed.measurementlab.net
 				3. Speedtest on http://openload.co/speedtest
 				4. Speedtest on fast.com
-				5. Download speed while downloading a zip file from Github (e.g. https://github.com/souravndp/TEST/archive/master.zip)
-				6. Speedtest while downloading via ftp protocol";
+				5. Speedtest on http://internethealthtest.org
+				6. Download speed while downloading a zip file from Github (e.g. https://github.com/souravndp/TEST/archive/master.zip)
+				7. Speedtest while downloading via ftp protocol";
 				post_reply($id, $reply, $reply_to);
 			}
 		}else if (stripos($message,'pmplbot(lco)') !== false || stripos($message,'pmplbot lco') !== false){
@@ -381,7 +383,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				-torrent (torrent faq)
 				-portforward
 				-security (how to securely manage your Meghbela Broadband internet account)
-				-regulations (Collection of relevant regulation links by TRAI or depatment of telecommunications)
+				-regulation (Collection of relevant regulation links by TRAI or depatment of telecommunications)
 				-howinternetworks (Basic knowledge about the internet-video link)
 				-router (Router buying guide/suggestion)
 				-lco (LCO misconduct/grievances against LCO)
@@ -548,7 +550,7 @@ function secondsToTime($seconds) {
 
 
 
-//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulations, portforward, liveip, speedtest, suggest/bug, lco
+//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulation, portforward, liveip, speedtest, suggest/bug, lco
 
 /*TODO: 
 1. 8.8.8.8 does not respond to curl. it responds to ping. change the code to use ping
@@ -571,6 +573,13 @@ function secondsToTime($seconds) {
 
 
 6. [DONE] Message field won't be set for posts only containing images. so, check using isset. This is not the case with comments. if picture only comment then the message field is set but blank "".
+
+
+7. MARK HTTP CODE 521 AS DOWN. THIS IS UNOFFICIAL HTTP CODES WHICH ARE USED BY CLOUDFLARE. SEE WIKIPEDIA. 521 MEANS THAT THE ORIGIN WEBSERVER DIDN'T RESPOND
+
+8. https://stackoverflow.com/questions/38872402/facebook-32-page-request-limited-reached
+x-page-usage: {"call_count":50,"total_cputime":100,"total_time":30}
+
 
 
 
