@@ -343,6 +343,15 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				Myaccount Portal(http://mypage.meghbelabroadband.in)";
 				post_reply($id, $reply, $reply_to);
 			}
+		}else if (stripos($message,'pmplbot(antivirus)') !== false || stripos($message,'pmplbot antivirus') !== false){
+			                                                      //--------------------pmplbot(security)--------------------
+			if (!already_replied($id,$message,$created_time)){
+				$reply="There are many previous posts regarding Anti-viruses in this group. Please search old posts. Here are some URL of independent research institutes who conduct security tests and publish them.
+				1. https://www.av-comparatives.org/comparison/
+				2. https://www.av-test.org/en/antivirus/home-windows/
+				3. https://selabs.uk/en/reports/consumers";
+				post_reply($id, $reply, $reply_to);
+			}
 		}else if (stripos($message,'pmplbot(redflag)') !== false || stripos($message,'pmplbot redflag') !== false){
 			                                                     //--------------------pmplbot(redflag)--------------------
 			if (!already_replied($id,$message,$created_time)){
@@ -386,6 +395,7 @@ function match_keyword($id, $message, $created_time, $reply_to = false){
 				-regulation (Collection of relevant regulation links by TRAI or depatment of telecommunications)
 				-howinternetworks (Basic knowledge about the internet-video link)
 				-router (Router buying guide/suggestion)
+				-antivirus (Anti-virus comparison website details)
 				-lco (LCO misconduct/grievances against LCO)
 				-offtopic
 				-repost (Already discussed topics. inform OP to search old posts)
@@ -550,7 +560,7 @@ function secondsToTime($seconds) {
 
 
 
-//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulation, portforward, liveip, speedtest, suggest/bug, lco
+//ping,status,check:,redflag,whoareyou,joke,contact,plans,alpha2,router,localpeers,speedproblem,connectionproblem,torrent,offtopic,autologin,livetv,repost(search old posts),grievance,howinternetworks,dns,https,help,onlinerecharge, wifiproblem, movierequest, conduct, regulation, portforward, liveip, speedtest, suggest/bug, lco, antivirus
 
 /*TODO: 
 1. 8.8.8.8 does not respond to curl. it responds to ping. change the code to use ping
