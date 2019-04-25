@@ -6,7 +6,7 @@ Users can't login or use this app. This app posts on behalf of the Facebook page
 
 We are not affiliated with Meghbela Cable & Broadband services private limited or PMPL. The group is created by Meghbela Broadband users to help other users.
 
-The scope of this app is describe below
+The scope of this app is described below
 
 1. Search for certain keyworks in the group feed and post automatic pre-composed replies if a match is found
 2. Comment on old posts which have no replies and bring them on top
